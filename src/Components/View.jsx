@@ -1,10 +1,12 @@
 import React, { useContext, useEffect, useState } from 'react'
 import Add from './Add'
 import Edit from './Edit'
-import { userProjectAPI } from '../services/allAPI'
-import { addProjectResponseContext } from '../contexts/ContextAPI'
+import { userProjectAPI, userprojectRemoveAPI } from '../services/allAPI'
+import { addProjectResponseContext, editProjectResponseContext } from '../contexts/ContextAPI'
 
 const View = () => {
+
+  const {editProjectResponse, setEditProjectResponse} = useContext(editProjectResponseContext)
 
   // from contextapi
   const {addProjectResponse, setAddProjectResponse} = useContext(addProjectResponseContext)
@@ -14,12 +16,14 @@ const View = () => {
   // need to display projects when page loads
   useEffect(()=>{
     getUserProjects()
-  },[addProjectResponse])
+  },[addProjectResponse,editProjectResponse])
 
   console.log(userProjects);
   
 
   const getUserProjects = async()=>{
+    console.log("getUserProjects");
+    
     // take token
     const token = sessionStorage.getItem('token')
     if(token){
@@ -40,6 +44,28 @@ const View = () => {
     }
   }
 
+  const deleteProject =async(id)=>{
+     // take token
+     const token = sessionStorage.getItem('token')
+
+     // check token is present or not
+     if(token){
+       // api call, need header
+       const reqHeaders ={
+         "Authorization":`Bearer ${token}`
+       }
+       try {
+        await userprojectRemoveAPI(id,reqHeaders)
+        // to see changes in frontend call get function
+        getUserProjects()
+       } catch (error) {
+        console.log(error);
+        
+       }
+
+      }
+  }
+
   return (
     <>
     <div className='d-flex justify-content-between'>
@@ -57,7 +83,7 @@ const View = () => {
           <div className='btn'>
             <a target='_blank' href={project?.github}><i className='fa-brands fa-github'></i></a>
           </div>
-          <button className='btn text-danger'><i className='fa-solid fa-trash'></i></button>
+          <button onClick={()=>deleteProject(project?._id)} className='btn text-danger'><i className='fa-solid fa-trash'></i></button>
 
         </div>
       </div> 
